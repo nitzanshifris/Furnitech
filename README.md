@@ -50,5 +50,7 @@ Configure these (for example in `.env.local`, which is git‑ignored):
 - **`public/`** – The HTML frontends for login, admin, customer dashboards, AR viewer, wallpaper viewer, and internal test/demo pages used during development.
 - **`migrations/` & `db/`** – SQL migrations and helper scripts for setting up and maintaining the Supabase schema.
 - **`dev/` & `scripts/`** – Local scripts and utilities (CORS/apply scripts, local migration testers, S3 permission fixer, etc.) that show the operational tooling used around the platform.
+- **`cli-tool/`** – Node + JS/Python utilities for manipulating 3D models (color operations, scaling, splitting by angle, bottom‑fix tools, etc.).
+- **`image-to-3d/`** – A separate Python helper with docs (`README.md`) and `example_usage.py` showing how to generate GLB models from web images using Replicate’s Trellis model.
 
-This repo is intentionally left close to the real production setup of `newfurniture.live` so you can see the **full toolchain** (Supabase, AWS, Google APIs, Vercel, QR tooling, migration scripts, and dev ops helpers) and adapt it to your own AR content platforms.
+This repo is intentionally left close to the real production setup of `newfurniture.live` so you can see the **full toolchain** (Supabase, AWS, Google APIs, Vercel, QR tooling, 3D model CLI tools, image‑to‑3D helpers, migration scripts, and dev ops helpers) and adapt it to your own AR content platforms.

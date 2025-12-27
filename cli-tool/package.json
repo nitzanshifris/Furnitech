@@ -1,0 +1,26 @@
+{
+  "name": "glb-wizard",
+  "version": "1.0.0",
+  "description": "Interactive CLI tool for GLB model manipulation",
+  "main": "index.js",
+  "bin": {
+    "glb-wizard": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": ["glb", "gltf", "3d", "furniture", "cli", "wizard"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@gltf-transform/core": "^4.0.0",
+    "@gltf-transform/functions": "^4.0.0",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.5",
+    "ora": "^5.4.1",
+    "cli-table3": "^0.6.3",
+    "sharp": "^0.33.0",
+    "js-yaml": "^4.1.0"
+  }
+}
