@@ -49,7 +49,6 @@ Configure these (for example in `.env.local`, which is git‑ignored):
   - QR code generation, SKU generation, syncing/comparison utilities, security utilities
 - **`public/`** – The HTML frontends for login, admin, customer dashboards, AR viewer, wallpaper viewer, and internal test/demo pages used during development.
 - **`migrations/` & `db/`** – SQL migrations and helper scripts for setting up and maintaining the Supabase schema.
-- **`docs/`** – High‑level architecture and AWS setup docs that explain how Supabase, AWS, Google Sheets, and Vercel work together, and how the Cloudinary→AWS migration was handled.
 - **`dev/` & `scripts/`** – Local scripts and utilities (CORS/apply scripts, local migration testers, S3 permission fixer, etc.) that show the operational tooling used around the platform.
 
 This repo is intentionally left close to the real production setup of `newfurniture.live` so you can see the **full toolchain** (Supabase, AWS, Google APIs, Vercel, QR tooling, migration scripts, and dev ops helpers) and adapt it to your own AR content platforms.
