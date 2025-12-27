@@ -41,13 +41,15 @@ Configure these (for example in `.env.local`, which is git‑ignored):
 
 ### What you’ll find in the code
 
-- **`api/`** – All Vercel functions: core API router, upload endpoints, customer/admin APIs, QR and analytics, plus rich **migration helpers** (Cloudinary → AWS, batch tools, debug endpoints).
+- **`api/`** – All Vercel functions: core API router, upload endpoints, customer/admin APIs, QR and analytics, Sheets sync, and rich **migration helpers** (Cloudinary → AWS, batch tools, debug endpoints).
 - **`lib/`** – Shared libraries that show how the platform uses:
-  - Supabase (`supabase.js`), including higher‑level data helpers and SQL-like utilities
+  - Supabase (`supabase.js`) with higher‑level data helpers and SQL-like utilities
   - AWS S3 (`aws-s3-simple.js`) for model/logo upload and URL generation
   - Google Sheets (`google-sheets.js`, `sheets-*.js`) for customer spreadsheets
   - QR code generation, SKU generation, syncing/comparison utilities, security utilities
-- **`public/`** – The actual HTML frontends for login, admin, customer dashboards, AR viewer, wallpaper viewer, and several internal test/demo pages used during development.
-- **Architecture/migration docs** – High‑level docs like `PLATFORM_ARCHITECTURE.md`, `SYSTEM_ARCHITECTURE_DIAGRAM.md`, and `AWS_S3_SETUP.md` that explain how Supabase, AWS, Google Sheets, and Vercel work together and how the Cloudinary→AWS migration was handled.
+- **`public/`** – The HTML frontends for login, admin, customer dashboards, AR viewer, wallpaper viewer, and internal test/demo pages used during development.
+- **`migrations/` & `db/`** – SQL migrations and helper scripts for setting up and maintaining the Supabase schema.
+- **`docs/`** – High‑level architecture and AWS setup docs that explain how Supabase, AWS, Google Sheets, and Vercel work together, and how the Cloudinary→AWS migration was handled.
+- **`dev/` & `scripts/`** – Local scripts and utilities (CORS/apply scripts, local migration testers, S3 permission fixer, etc.) that show the operational tooling used around the platform.
 
-This repo is intentionally left close to the real production setup of `newfurniture.live` so you can see the **full toolchain** (Supabase, AWS, Google APIs, Vercel, QR tooling, migration scripts) and adapt it to your own AR content platforms.
+This repo is intentionally left close to the real production setup of `newfurniture.live` so you can see the **full toolchain** (Supabase, AWS, Google APIs, Vercel, QR tooling, migration scripts, and dev ops helpers) and adapt it to your own AR content platforms.
