@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Model Migration (With Variants)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .model-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+        }
+        .model-info {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .variants-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        .variant-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .status.show { display: block; }
+        .status.success {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+        .status.error {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+        .status.loading {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #856404;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result-box {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .test-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .test-links a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .test-links a:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>🚀</span>
+            Complete Model Migration (With All Variants)
+        </h1>
+
+        <div class="model-card">
+            <h2>Test Complete Migration: BLUSH Model</h2>
+
+            <div class="model-info">
+                <span class="label">Model ID:</span>
+                <span>o8U54bIP</span>
+                <span class="label">Title:</span>
+                <span>BLUSH</span>
+                <span class="label">Main File Size:</span>
+                <span>4.52 MB</span>
+                <span class="label">Current Status:</span>
+                <span id="current-status">Main model on AWS, variants on Cloudinary</span>
+            </div>
+
+            <div class="variants-section">
+                <h3>📦 Variants to Migrate:</h3>
+                <div class="variant-item">
+                    <div class="color-circle" style="background-color: #585e6a;"></div>
+                    <span><strong>Blush Gray</strong> - ID: j4FR344V</span>
+                </div>
+                <div class="variant-item">
+                    <div class="color-circle" style="background-color: #6a715b;"></div>
+                    <span><strong>Blush Green</strong> - ID: igaJuwvK</span>
+                </div>
+                <div class="variant-item">
+                    <div class="color-circle" style="background-color: #646464;"></div>
+                    <span><strong>Blush White</strong> - ID: fCQ-kkZD</span>
+                </div>
+            </div>
+
+            <button id="migrate-btn" onclick="migrateWithVariants()">
+                🎯 Migrate BLUSH + All Variants to AWS
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div id="result"></div>
+
+        <h2 style="margin-top: 40px;">Or Test Another Model:</h2>
+        <input type="text" id="custom-model-id" placeholder="Enter Model ID" style="padding: 12px; width: 300px; border-radius: 6px; border: 1px solid #ddd;">
+        <button onclick="migrateCustomModel()">Migrate Custom Model + Variants</button>
+    </div>
+
+    <script>
+        async function migrateWithVariants() {
+            await performMigration('o8U54bIP');
+        }
+
+        async function migrateCustomModel() {
+            const modelId = document.getElementById('custom-model-id').value.trim();
+            if (!modelId) {
+                alert('Please enter a Model ID');
+                return;
+            }
+            await performMigration(modelId);
+        }
+
+        async function performMigration(modelId) {
+            const button = document.getElementById('migrate-btn');
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+
+            button.disabled = true;
+
+            // Show loading
+            statusDiv.className = 'status loading show';
+            statusDiv.innerHTML = '<div class="spinner"></div> Migrating model and all variants to AWS S3...';
+
+            try {
+                console.log('Starting complete migration for:', modelId);
+
+                const response = await fetch('/api/migrate-model-with-variants', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ modelId })
+                });
+
+                const data = await response.json();
+                console.log('Migration response:', data);
+
+                if (data.success) {
+                    statusDiv.className = 'status success show';
+                    statusDiv.innerHTML = '✅ Migration successful!';
+
+                    // Show detailed results
+                    resultDiv.innerHTML = `
+                        <div class="result-box">
+                            <h3>🎉 Complete Migration Successful!</h3>
+                            <p><strong>Model:</strong> ${data.summary.title}</p>
+                            <p><strong>Files Migrated:</strong> ${data.summary.files_migrated}</p>
+                            <p><strong>Total Size:</strong> ${data.summary.total_size_mb} MB</p>
+
+                            <h4>Main Model:</h4>
+                            <ul>
+                                <li>AWS URL: <code>${data.summary.main_model.aws_url}</code></li>
+                                <li>Size: ${data.summary.main_model.size_mb} MB</li>
+                            </ul>
+
+                            <h4>Variants Migrated:</h4>
+                            <ul>
+                                ${data.summary.variants.map(v => `
+                                    <li>
+                                        <span style="display: inline-block; width: 20px; height: 20px; background: ${v.color}; border-radius: 50%; vertical-align: middle;"></span>
+                                        <strong>${v.name}</strong>: ${v.size_mb || 'Already migrated'} MB
+                                        ${v.error ? `<span style="color: red;">Error: ${v.error}</span>` : '✅'}
+                                    </li>
+                                `).join('')}
+                            </ul>
+
+                            <div class="test-links">
+                                <a href="${data.test_urls.ar_view}" target="_blank">🔍 Test Main Model</a>
+                                ${data.test_urls.variant_test ?
+                                    `<a href="${data.test_urls.variant_test}" target="_blank">🎨 Test Variant</a>` : ''}
+                            </div>
+                        </div>
+
+                        <details style="margin-top: 20px;">
+                            <summary style="cursor: pointer; color: #667eea; font-weight: bold;">View Full Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+
+                    // Update status
+                    document.getElementById('current-status').innerHTML =
+                        '<span style="color: green;">✅ Fully migrated to AWS (all variants)</span>';
+
+                } else {
+                    statusDiv.className = 'status error show';
+                    statusDiv.innerHTML = `❌ Migration failed: ${data.details || data.error}`;
+                    resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                console.error('Migration error:', error);
+                statusDiv.className = 'status error show';
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

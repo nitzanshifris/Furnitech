@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Migration Control Center</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #dc3545;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .control-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        .option-group {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+            font-weight: 600;
+            color: #555;
+        }
+        select, input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 200px;
+        }
+        .big-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            margin: 10px;
+        }
+        .big-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        .big-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .big-button.danger {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        }
+        .big-button.safe {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .status {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 12px;
+            display: none;
+        }
+        .status.show { display: block; }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .result-section {
+            display: none;
+            margin-top: 30px;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        .result-card.failed {
+            border-left-color: #dc3545;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>🎛️</span>
+            Batch Migration Control Center
+        </h1>
+
+        <div class="warning-box">
+            <h2>⚠️ Important: Before Running Batch Migration</h2>
+            <ul>
+                <li>✅ We've successfully tested BLUSH model with all variants</li>
+                <li>✅ AWS S3 CORS is configured correctly</li>
+                <li>✅ QR codes are working for all variants</li>
+                <li>📊 You have 54 total models to migrate</li>
+                <li>💰 This will save ~$250-600/month in storage costs</li>
+            </ul>
+        </div>
+
+        <div class="control-panel">
+            <h2>🎯 Migration Options</h2>
+
+            <div class="option-group">
+                <label>Migration Mode:</label>
+                <select id="migration-mode">
+                    <option value="test">🧪 Test Mode (Dry Run - No Changes)</option>
+                    <option value="limited">🔢 Limited Migration (First N Models)</option>
+                    <option value="all">🚀 Full Migration (All Models)</option>
+                </select>
+            </div>
+
+            <div class="option-group" id="limit-group" style="display: none;">
+                <label>Number of Models to Migrate:</label>
+                <input type="number" id="limit-count" value="5" min="1" max="54">
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="big-button safe" onclick="startTestRun()">
+                    🧪 Run Test (No Changes)
+                </button>
+                <button class="big-button" onclick="startLimitedMigration()">
+                    🔢 Migrate First 5 Models
+                </button>
+                <button class="big-button danger" onclick="startFullMigration()">
+                    🚀 MIGRATE ALL 54 MODELS
+                </button>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="progress-bar" id="progress-bar" style="display: none;">
+            <div class="progress-fill" id="progress-fill">0%</div>
+        </div>
+
+        <div id="result-section" class="result-section">
+            <h2>📊 Migration Results</h2>
+            <div id="stats" class="stats-grid"></div>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('migration-mode').addEventListener('change', function(e) {
+            const limitGroup = document.getElementById('limit-group');
+            limitGroup.style.display = e.target.value === 'limited' ? 'block' : 'none';
+        });
+
+        async function startTestRun() {
+            if (!confirm('Run a test to see what would be migrated? (No actual changes)')) return;
+            await runMigration(5, true);
+        }
+
+        async function startLimitedMigration() {
+            const limit = document.getElementById('limit-count').value || 5;
+            if (!confirm(`Migrate first ${limit} models with all their variants?`)) return;
+            await runMigration(limit, false);
+        }
+
+        async function startFullMigration() {
+            if (!confirm('⚠️ This will migrate ALL 54 models and their variants to AWS S3.\n\nThis process may take 10-15 minutes.\n\nAre you sure?')) return;
+            if (!confirm('⚠️ FINAL CONFIRMATION:\n\nMigrate ALL models to AWS S3?\n\nThis action cannot be easily undone.')) return;
+            await runMigration('all', false);
+        }
+
+        async function runMigration(limit, testMode) {
+            const statusDiv = document.getElementById('status');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+            const resultSection = document.getElementById('result-section');
+
+            // Disable all buttons
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            // Show status
+            statusDiv.className = 'status show';
+            statusDiv.style.background = 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+            statusDiv.innerHTML = `
+                <h3>🔄 Migration in Progress...</h3>
+                <p>${testMode ? 'Running test mode (no changes)' : `Migrating ${limit === 'all' ? 'ALL' : limit} models...`}</p>
+                <p>This may take several minutes. Please wait...</p>
+            `;
+
+            progressBar.style.display = 'block';
+            progressFill.style.width = '10%';
+            progressFill.textContent = 'Starting...';
+
+            try {
+                // Simulate progress
+                setTimeout(() => {
+                    progressFill.style.width = '30%';
+                    progressFill.textContent = 'Connecting to AWS...';
+                }, 1000);
+
+                const response = await fetch('/api/migrate-all-models', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        limit: limit,
+                        testMode: testMode
+                    })
+                });
+
+                progressFill.style.width = '90%';
+                progressFill.textContent = 'Processing results...';
+
+                const data = await response.json();
+                console.log('Migration result:', data);
+
+                progressFill.style.width = '100%';
+                progressFill.textContent = 'Complete!';
+
+                // Show results
+                if (data.success) {
+                    statusDiv.style.background = 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)';
+                    statusDiv.innerHTML = `
+                        <h3>✅ ${testMode ? 'Test Complete!' : 'Migration Successful!'}</h3>
+                        <p>${data.message}</p>
+                    `;
+                } else {
+                    statusDiv.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                    statusDiv.innerHTML = `
+                        <h3>⚠️ Migration Completed with Issues</h3>
+                        <p>${data.message}</p>
+                    `;
+                }
+
+                // Display detailed results
+                if (data.summary) {
+                    resultSection.style.display = 'block';
+
+                    // Stats cards
+                    const statsHtml = `
+                        <div class="stat-card">
+                            <div class="stat-label">Models Processed</div>
+                            <div class="stat-value">${data.summary.total_processed || 0}</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <div class="stat-label">Successful</div>
+                            <div class="stat-value">${data.summary.successful || 0}</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);">
+                            <div class="stat-label">Failed</div>
+                            <div class="stat-value">${data.summary.failed || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Files</div>
+                            <div class="stat-value">${data.summary.total_files_migrated || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Size</div>
+                            <div class="stat-value">${data.summary.total_size_mb || 0} MB</div>
+                        </div>
+                        ${data.cost_savings ? `
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <div class="stat-label">Monthly Savings</div>
+                            <div class="stat-value">${data.cost_savings.monthly_savings}</div>
+                        </div>
+                        ` : ''}
+                    `;
+                    document.getElementById('stats').innerHTML = statsHtml;
+
+                    // Detailed results
+                    let resultsHtml = '';
+                    if (data.details) {
+                        if (data.details.successful?.length > 0) {
+                            resultsHtml += '<h3>✅ Successfully Migrated:</h3><div class="result-grid">';
+                            data.details.successful.forEach(item => {
+                                resultsHtml += `
+                                    <div class="result-card">
+                                        <strong>${item.title}</strong><br>
+                                        Files: ${item.files}, Size: ${item.size_mb} MB
+                                    </div>
+                                `;
+                            });
+                            resultsHtml += '</div>';
+                        }
+
+                        if (data.details.failed?.length > 0) {
+                            resultsHtml += '<h3>❌ Failed:</h3><div class="result-grid">';
+                            data.details.failed.forEach(item => {
+                                resultsHtml += `
+                                    <div class="result-card failed">
+                                        <strong>${item.title}</strong><br>
+                                        Error: ${item.error}
+                                    </div>
+                                `;
+                            });
+                            resultsHtml += '</div>';
+                        }
+                    }
+
+                    if (testMode && data.summary.migration_queue) {
+                        resultsHtml += '<h3>📋 Models Found for Migration:</h3><pre>' +
+                            JSON.stringify(data.summary.migration_queue, null, 2) + '</pre>';
+                    }
+
+                    document.getElementById('results').innerHTML = resultsHtml;
+                }
+
+            } catch (error) {
+                console.error('Migration error:', error);
+                statusDiv.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                statusDiv.innerHTML = `
+                    <h3>❌ Migration Error</h3>
+                    <p>${error.message}</p>
+                `;
+                progressFill.style.width = '100%';
+                progressFill.style.background = 'red';
+                progressFill.textContent = 'Error!';
+            } finally {
+                // Re-enable buttons
+                document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            }
+        }
+    </script>
+</body>
+</html>

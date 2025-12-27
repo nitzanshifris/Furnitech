@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' *.newfurniture.live localhost:*;">
+    <title>AR Wallpaper Viewer - newfurniture.live</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="View wallpaper in AR - see how it looks on your walls">
+    <meta name="keywords" content="AR wallpaper, augmented reality wallpaper, wall visualization">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide container by default to prevent flash */
+        .container {
+            display: none;
+        }
+        
+        /* Hide everything on mobile initially */
+        @media (max-width: 768px) {
+            body {
+                visibility: hidden;
+                background: #000 !important;
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.95) 0%, rgba(30, 35, 42, 0.9) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(240, 246, 252, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+        }
+
+        .controls {
+            padding: 20px;
+            background: rgba(26, 27, 34, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ar-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .ar-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .ar-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-card h3 {
+            color: #fff;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .wallpaper-instructions {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .wallpaper-instructions h4 {
+            color: #58a6ff;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .wallpaper-instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .wallpaper-instructions li {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .wallpaper-instructions li::before {
+            content: '•';
+            color: #58a6ff;
+            position: absolute;
+            left: 0;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 450px;
+            background: #1a1a1a;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #cc0000;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .back-button {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            model-viewer {
+                height: 350px;
+            }
+        }
+
+        /* Desktop layout for QR code display */
+        .desktop-container {
+            display: none;
+            background: #0d1117;
+            min-height: 100vh;
+            padding: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .desktop-content {
+            display: flex;
+            gap: 60px;
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.95) 0%, rgba(30, 35, 42, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            border-radius: 24px;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
+            max-width: 1000px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .desktop-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.5), rgba(163, 113, 247, 0.5), transparent);
+        }
+
+        .wallpaper-preview {
+            flex: 1;
+        }
+
+        .wallpaper-title {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .desktop-model-viewer {
+            width: 500px;
+            height: 400px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 1px solid rgba(240, 246, 252, 0.08);
+        }
+
+        .ar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .qr-container {
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.1) 0%, rgba(163, 113, 247, 0.1) 100%);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(240, 246, 252, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            display: block;
+        }
+
+        .ar-instructions {
+            text-align: center;
+            color: #e6edf3;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .ar-instructions .highlight {
+            color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .ar-instructions .subtitle {
+            color: #7d8590;
+            font-size: 0.9rem;
+        }
+
+        .instruction-steps {
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.7) 0%, rgba(30, 35, 42, 0.6) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+        }
+
+        .instruction-steps p {
+            color: #7d8590;
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.8;
+        }
+
+        .instruction-steps .step-icon {
+            color: #58a6ff;
+            margin-right: 8px;
+        }
+
+        /* Mobile AR overlay styles */
+        .ar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ar-message {
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .ar-loading {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .desktop-content {
+                flex-direction: column;
+                gap: 40px;
+                text-align: center;
+            }
+            
+            .desktop-model-viewer {
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile AR Container -->
+    <div class="container" id="container">
+        <div class="header">
+            <h1 id="wallpaperTitle">AR Wallpaper</h1>
+            <p id="wallpaperDescription">See how this wallpaper looks on your wall</p>
+        </div>
+        
+        <div id="viewerContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading wallpaper...</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="ar-button" id="arButton" style="display: none;">
+                📱 View on Your Wall
+            </button>
+            
+            <div class="info-card">
+                <h3>Wallpaper AR Experience:</h3>
+                <p>Point your camera at a wall and tap to place the wallpaper. See realistic textures, lighting, and scale.</p>
+                
+                <div class="wallpaper-instructions">
+                    <h4>📐 How to use:</h4>
+                    <ul>
+                        <li>Find a flat wall with good lighting</li>
+                        <li>Tap "View on Your Wall" button</li>
+                        <li>Point camera at the wall surface</li>
+                        <li>Tap to place wallpaper</li>
+                        <li>Move closer to see texture details</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button class="back-button" onclick="goBack()">
+                ← Back to Upload
+            </button>
+        </div>
+    </div>
+
+    <!-- Desktop QR Code Display -->
+    <div class="desktop-container" id="desktopContainer">
+        <div class="desktop-content">
+            <div class="wallpaper-preview">
+                <h2 class="wallpaper-title" id="desktopTitle">AR Wallpaper Preview</h2>
+                <model-viewer
+                    id="desktopModelViewer"
+                    class="desktop-model-viewer"
+                    alt="Wallpaper Preview"
+                    camera-controls
+                    auto-rotate
+                    shadow-intensity="1"
+                    exposure="0.8">
+                </model-viewer>
+            </div>
+            
+            <div class="ar-section">
+                <div class="qr-container">
+                    <img id="qrCode" class="qr-code" alt="QR Code for AR">
+                </div>
+                
+                <div class="ar-instructions">
+                    <span class="subtitle">Scan with your phone</span><br>
+                    <span class="highlight">to see this wallpaper</span><br>
+                    <span class="subtitle">on your wall! 📱</span>
+                </div>
+                
+                <div class="instruction-steps">
+                    <p>
+                        <span class="step-icon">📱</span> Open camera app on your phone<br>
+                        <span class="step-icon">👆</span> Point at the QR code above<br>
+                        <span class="step-icon">🏠</span> Follow link to AR wallpaper viewer<br>
+                        <span class="step-icon">🎯</span> Point at wall and tap to place
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AR Loading Overlay -->
+    <div class="ar-overlay" id="arOverlay">
+        <div class="ar-loading"></div>
+        <div class="ar-message">Preparing AR experience...</div>
+    </div>
+
+    <script>
+        let wallpaperGLB = null;
+        let isDesktop = false;
+        
+        // Get GLB URL from parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const glbUrl = urlParams.get('glb');
+        
+        console.log('🎨 Wallpaper viewer loaded, GLB URL:', glbUrl);
+
+        // Detect device type
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        isDesktop = !isMobile;
+
+        if (!glbUrl) {
+            showError('No wallpaper data provided');
+        } else {
+            loadWallpaper(glbUrl);
+        }
+
+        async function loadWallpaper(glbUrl) {
+            try {
+                console.log('📱 Device type:', isDesktop ? 'Desktop' : 'Mobile');
+                
+                if (isMobile) {
+                    // Mobile: Direct AR experience
+                    document.body.style.visibility = 'hidden';
+                    document.body.style.background = '#000';
+                    launchMobileAR(glbUrl);
+                } else {
+                    // Desktop: Show QR code and preview
+                    setupDesktopView(glbUrl);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load wallpaper:', error);
+                showError('Failed to load wallpaper: ' + error.message);
+            }
+        }
+
+        function setupDesktopView(glbUrl) {
+            console.log('🖥️ Setting up desktop view');
+            
+            // Hide mobile container
+            document.getElementById('container').style.display = 'none';
+            
+            // Show desktop layout
+            const desktopContainer = document.getElementById('desktopContainer');
+            desktopContainer.style.display = 'flex';
+            
+            // Set up model viewer
+            const modelViewer = document.getElementById('desktopModelViewer');
+            modelViewer.src = glbUrl;
+            
+            // Generate QR code for mobile access
+            const currentUrl = window.location.href;
+            const qrCodeUrl = `/api/u4?url=${encodeURIComponent(currentUrl)}&format=png&size=200&raw=true`;
+            document.getElementById('qrCode').src = qrCodeUrl;
+            
+            console.log('✅ Desktop view setup complete');
+        }
+
+        function launchMobileAR(glbUrl) {
+            console.log('📱 Launching mobile AR experience');
+            
+            // Show loading overlay
+            document.getElementById('arOverlay').style.display = 'flex';
+            
+            // Create invisible model-viewer for AR
+            const modelViewer = document.createElement('model-viewer');
+            modelViewer.setAttribute('src', glbUrl);
+            modelViewer.setAttribute('ar', '');
+            modelViewer.setAttribute('ar-modes', 'scene-viewer quick-look');
+            modelViewer.setAttribute('ar-scale', 'fixed');
+            modelViewer.setAttribute('camera-controls', '');
+            modelViewer.style.cssText = 'width: 1px; height: 1px; opacity: 0; position: absolute;';
+            
+            document.body.appendChild(modelViewer);
+
+            // Create AR controls
+            createMobileARControls();
+
+            // Wait for model to load, then activate AR
+            let arActivated = false;
+            
+            modelViewer.addEventListener('load', () => {
+                console.log('✅ Wallpaper model loaded');
+                document.getElementById('arOverlay').style.display = 'none';
+                
+                if (!arActivated && modelViewer.canActivateAR) {
+                    arActivated = true;
+                    console.log('🚀 Activating AR...');
+                    modelViewer.activateAR();
+                }
+            });
+            
+            // Backup: Try AR after delay
+            setTimeout(() => {
+                document.getElementById('arOverlay').style.display = 'none';
+                if (!arActivated && modelViewer.activateAR) {
+                    arActivated = true;
+                    console.log('🚀 Activating AR via timeout...');
+                    modelViewer.activateAR();
+                }
+            }, 3000);
+        }
+
+        function createMobileARControls() {
+            // Create back button for when user exits AR
+            const backButton = document.createElement('button');
+            backButton.id = 'arBackButton';
+            backButton.style.cssText = `
+                position: fixed;
+                bottom: 120px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #58a6ff 0%, #4e9eff 100%);
+                color: white;
+                border: none;
+                padding: 15px 25px;
+                border-radius: 25px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3);
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                z-index: 9999;
+                visibility: hidden;
+                min-width: 200px;
+                transition: all 0.3s ease;
+            `;
+            backButton.textContent = '← Back to Wallpaper Upload';
+            backButton.onclick = goBack;
+            
+            document.body.appendChild(backButton);
+            
+            // Show back button after delay
+            setTimeout(() => {
+                backButton.style.visibility = 'visible';
+                backButton.style.animation = 'fadeIn 0.5s ease-in-out';
+            }, 4000);
+
+            // Add instructions overlay
+            const instructionsDiv = document.createElement('div');
+            instructionsDiv.style.cssText = `
+                position: fixed;
+                bottom: 200px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: white;
+                font-size: 16px;
+                font-weight: 500;
+                text-align: center;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 9999;
+                visibility: hidden;
+                max-width: 90vw;
+                background: rgba(0,0,0,0.5);
+                padding: 15px 20px;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+            `;
+            instructionsDiv.innerHTML = `
+                🏠 Point camera at a wall<br>
+                👆 Tap to place wallpaper
+            `;
+            
+            document.body.appendChild(instructionsDiv);
+            
+            // Show instructions
+            setTimeout(() => {
+                instructionsDiv.style.visibility = 'visible';
+                instructionsDiv.style.animation = 'fadeIn 0.5s ease-in-out';
+            }, 2000);
+            
+            // Hide instructions after a while
+            setTimeout(() => {
+                instructionsDiv.style.opacity = '0.7';
+                setTimeout(() => {
+                    instructionsDiv.style.visibility = 'hidden';
+                }, 5000);
+            }, 8000);
+        }
+
+        function goBack() {
+            // Try to go back to wallpaper upload page
+            if (document.referrer && document.referrer.includes('wallpaper.html')) {
+                history.back();
+            } else {
+                // Fallback to wallpaper upload page
+                window.location.href = '/wallpaper.html';
+            }
+        }
+
+        function showError(message) {
+            document.body.style.visibility = 'visible';
+            document.body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; max-width: 500px;">
+                        <h3 style="color: #cc0000; margin-bottom: 20px;">Wallpaper Loading Error</h3>
+                        <p style="color: #666; margin-bottom: 30px;">${message}</p>
+                        <a href="/wallpaper.html" style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 50px;">
+                            Upload New Wallpaper
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add fade-in keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

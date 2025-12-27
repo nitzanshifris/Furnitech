@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS AR Test - Groove Grey Scaled</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0070f3;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left: 4px solid #00a000;
+        }
+        .error {
+            background: #fef2f2;
+            border-left: 4px solid #e00;
+        }
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #0070f3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0051a0;
+        }
+        .btn.secondary {
+            background: #666;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .code {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪑 AWS AR Test: Groove Grey Scaled</h1>
+
+        <div class="test-info">
+            <h3>🎯 Goal: Test AWS S3 Model in AR Viewer</h3>
+            <p><strong>Model:</strong> Groove_grey-scaled</p>
+            <p><strong>Source:</strong> AWS S3 (proxied through API)</p>
+            <p><strong>Proxy URL:</strong></p>
+            <div class="code">/api/aws-model-proxy?file=Groove_grey-scaled.glb</div>
+            <p><strong>✅ Benefits:</strong> Bypasses CORS issues, maintains AWS S3 storage</p>
+        </div>
+
+        <!-- AR Model Viewer -->
+        <model-viewer
+            id="model-viewer"
+            src="/api/aws-model-proxy?file=Groove_grey-scaled.glb&v=2"
+            alt="Groove Grey Scaled Chair from AWS S3"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext y='50' font-size='12' text-anchor='middle' x='50'%3ELoading from AWS...%3C/text%3E%3C/svg%3E"
+            loading="eager"
+            reveal="auto">
+
+            <button slot="ar-button" class="btn">
+                📱 View in AR (AWS S3)
+            </button>
+
+            <div slot="progress-bar">
+                <div style="background: #0070f3; height: 4px; border-radius: 2px; transition: width 0.3s;"></div>
+            </div>
+        </model-viewer>
+
+        <div class="buttons">
+            <button class="btn" onclick="testModelLoad()">🔄 Reload Model</button>
+            <button class="btn secondary" onclick="checkModelInfo()">📊 Check Model Info</button>
+            <a href="/api/aws-model-proxy?file=Groove_grey-scaled.glb"
+               class="btn secondary" target="_blank">📦 Download GLB (via Proxy)</a>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="test-info">
+            <h3>✅ Success Criteria:</h3>
+            <ul>
+                <li>Model loads and displays in 3D viewer</li>
+                <li>"View in AR" button works on mobile</li>
+                <li>Model appears correctly in AR camera view</li>
+                <li>Performance comparable to Cloudinary</li>
+            </ul>
+        </div>
+
+        <div class="test-info">
+            <h3>📱 Mobile AR Testing:</h3>
+            <ol>
+                <li>Open this page on your <strong>iPhone or Android</strong></li>
+                <li>Click "📱 View in AR (AWS S3)" button</li>
+                <li>Allow camera permissions</li>
+                <li>Place the model in your space</li>
+                <li>Verify it works exactly like Cloudinary models</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const modelViewer = document.getElementById('model-viewer');
+        const statusDiv = document.getElementById('status');
+
+        // Model loading events
+        modelViewer.addEventListener('load', () => {
+            showStatus('✅ Model loaded successfully from AWS S3!', 'success');
+        });
+
+        modelViewer.addEventListener('error', (event) => {
+            showStatus('❌ Error loading model: ' + event.detail, 'error');
+        });
+
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = event.detail.totalProgress;
+            if (progress < 1) {
+                showStatus(`⏳ Loading... ${Math.round(progress * 100)}%`, 'info');
+            }
+        });
+
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function testModelLoad() {
+            showStatus('🔄 Reloading model from AWS...', 'info');
+            const currentSrc = modelViewer.src;
+            modelViewer.src = '';
+            setTimeout(() => {
+                modelViewer.src = currentSrc;
+            }, 100);
+        }
+
+        function checkModelInfo() {
+            const model = modelViewer.model;
+            if (model) {
+                const info = `
+Model loaded from AWS S3:
+• Source: ${modelViewer.src}
+• Bounding box: ${JSON.stringify(model.boundingBox)}
+• Size: ${model.size}
+• Status: Ready for AR
+                `;
+                alert(info);
+            } else {
+                alert('❌ Model not loaded yet');
+            }
+        }
+
+        // Log to console for debugging
+        console.log('🪑 AWS AR Test Page Loaded');
+        console.log('Model URL:', modelViewer.src);
+    </script>
+</body>
+</html>

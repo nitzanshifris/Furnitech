@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Source Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: white;
+        }
+        h1 {
+            color: #fbbf24;
+            text-align: center;
+        }
+        .instructions {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #fbbf24;
+        }
+        .model-test {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .source-url {
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .aws-source {
+            border: 2px solid #10b981;
+            color: #10b981;
+        }
+        .cloudinary-source {
+            border: 2px solid #ef4444;
+            color: #ef4444;
+        }
+        button {
+            background: #fbbf24;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            width: 100%;
+        }
+        button:hover {
+            background: #f59e0b;
+        }
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .result-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #334155;
+        }
+        .result-card.aws {
+            border-color: #10b981;
+        }
+        .result-card.cloudinary {
+            border-color: #ef4444;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge-aws {
+            background: #10b981;
+            color: white;
+        }
+        .badge-cloudinary {
+            background: #ef4444;
+            color: white;
+        }
+        #log {
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .log-aws {
+            color: #10b981;
+        }
+        .log-cloudinary {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Network Source Verification</h1>
+
+    <div class="instructions">
+        <h2>📋 Instructions:</h2>
+        <ol>
+            <li><strong>Open DevTools:</strong> Press F12 or right-click → Inspect</li>
+            <li><strong>Go to Network tab</strong></li>
+            <li><strong>Clear the network log</strong> (🚫 icon)</li>
+            <li><strong>Filter by:</strong> Type "glb" in the filter box</li>
+            <li><strong>Click the button below</strong> to load models</li>
+            <li><strong>Watch the Network tab</strong> - you'll see requests to either:
+                <ul>
+                    <li>✅ <code>newfurniture-ar-assets.s3.amazonaws.com</code> (AWS)</li>
+                    <li>❌ <code>res.cloudinary.com</code> (Cloudinary)</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <button onclick="testModels()">🚀 Load Models and Check Network Requests</button>
+
+    <div id="log"></div>
+    <div id="results" class="results"></div>
+
+    <script>
+        async function testModels() {
+            const logDiv = document.getElementById('log');
+            const resultsDiv = document.getElementById('results');
+
+            logDiv.innerHTML = '<div style="color: #fbbf24;">⏳ Starting network verification...</div>';
+            resultsDiv.innerHTML = '';
+
+            try {
+                // First, get the models data
+                const response = await fetch('/api/models');
+                const data = await response.json();
+
+                if (!data.success || !data.models) {
+                    throw new Error('Failed to load models');
+                }
+
+                const models = data.models.slice(0, 20); // Test first 20 models
+                logDiv.innerHTML += '<div style="color: #94a3b8;">Testing ' + models.length + ' models...</div>';
+                logDiv.innerHTML += '<div style="color: #fbbf24;">👀 WATCH THE NETWORK TAB NOW!</div>';
+
+                for (const model of models) {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+
+                    // Determine the URL source
+                    let sourceUrl = '';
+                    let sourceType = '';
+
+                    if (model.aws_url) {
+                        sourceUrl = model.aws_url;
+                        sourceType = 'aws';
+                        card.classList.add('aws');
+                    } else if (model.cloudinary_url) {
+                        sourceUrl = model.cloudinary_url;
+                        sourceType = 'cloudinary';
+                        card.classList.add('cloudinary');
+                    }
+
+                    if (sourceUrl) {
+                        // Make the actual network request
+                        logDiv.innerHTML += `<div class="log-entry log-${sourceType}">Fetching: ${model.title}</div>`;
+
+                        try {
+                            // This fetch will appear in the Network tab!
+                            const modelResponse = await fetch(sourceUrl);
+
+                            if (modelResponse.ok) {
+                                const blob = await modelResponse.blob();
+                                const blobUrl = URL.createObjectURL(blob);
+
+                                card.innerHTML = `
+                                    <h3>${model.title}
+                                        <span class="badge badge-${sourceType}">
+                                            ${sourceType === 'aws' ? '✅ AWS S3' : '❌ Cloudinary'}
+                                        </span>
+                                    </h3>
+                                    <div class="source-url ${sourceType}-source">
+                                        <strong>Source:</strong> ${sourceUrl}
+                                    </div>
+                                    <div style="color: #64748b; margin-top: 10px;">
+                                        Blob URL (local): ${blobUrl.substring(0, 80)}...
+                                    </div>
+                                `;
+
+                                logDiv.innerHTML += `<div class="log-entry log-${sourceType}">✅ Loaded from ${sourceType.toUpperCase()}: ${model.title}</div>`;
+                            } else {
+                                card.innerHTML = `
+                                    <h3>${model.title} <span class="badge" style="background: #6b7280;">Failed</span></h3>
+                                    <div style="color: #ef4444;">Failed to load: ${modelResponse.status}</div>
+                                `;
+                            }
+                        } catch (error) {
+                            card.innerHTML = `
+                                <h3>${model.title} <span class="badge" style="background: #6b7280;">Error</span></h3>
+                                <div style="color: #ef4444;">Error: ${error.message}</div>
+                            `;
+                        }
+                    } else {
+                        card.innerHTML = `
+                            <h3>${model.title} <span class="badge" style="background: #6b7280;">No URL</span></h3>
+                            <div style="color: #6b7280;">No file available</div>
+                        `;
+                    }
+
+                    resultsDiv.appendChild(card);
+                }
+
+                // Summary
+                const awsCount = resultsDiv.querySelectorAll('.result-card.aws').length;
+                const cloudinaryCount = resultsDiv.querySelectorAll('.result-card.cloudinary').length;
+
+                logDiv.innerHTML += `
+                    <div style="margin-top: 20px; padding: 10px; border-top: 1px solid #334155;">
+                        <div class="log-aws">✅ AWS S3: ${awsCount} models</div>
+                        <div class="log-cloudinary">❌ Cloudinary: ${cloudinaryCount} models</div>
+                        <div style="color: #fbbf24; margin-top: 10px;">
+                            🎯 Check your Network tab - you should see requests to:
+                            <br>- newfurniture-ar-assets.s3.amazonaws.com (AWS)
+                            <br>- res.cloudinary.com (Cloudinary)
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                logDiv.innerHTML += `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

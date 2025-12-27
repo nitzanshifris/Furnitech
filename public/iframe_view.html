@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Viewer - Iframe</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#2c3e50">
+    
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0c10 0%, #0d1117 50%, #111418 100%);
+            color: #e6edf3;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .viewer-container {
+            width: 90%;
+            height: 80%;
+            max-width: 800px;
+            background: rgba(22, 27, 34, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .title {
+            color: #58a6ff;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            background: transparent;
+            border-radius: 12px;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .ar-button {
+            background: linear-gradient(135deg, #58a6ff, #4e9eff);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ar-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(88, 166, 255, 0.3);
+        }
+        
+        .variant-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #58a6ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .variant-circle:hover {
+            transform: scale(1.1);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #7d8590;
+        }
+    </style>
+</head>
+<body>
+    <div class="viewer-container">
+        <div class="title" id="furnitureTitle">Loading AR Viewer...</div>
+        
+        <model-viewer id="modelViewer"
+                      src=""
+                      alt="Furniture Model"
+                      camera-controls
+                      auto-rotate
+                      ar
+                      ar-modes="scene-viewer quick-look"
+                      environment-image="neutral"
+                      shadow-intensity="1">
+            <div class="loading" slot="progress-bar">Loading 3D model...</div>
+        </model-viewer>
+        
+        <div class="controls" id="controls">
+            <button class="ar-button" onclick="launchAR()">👀 View in AR</button>
+            <div id="variants"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🚀 Iframe AR Viewer starting...');
+        
+        // Signal to parent immediately
+        if (window.parent !== window.self) {
+            console.log('📡 Sending ready signal to parent');
+            window.parent.postMessage({
+                type: 'iframeReady',
+                timestamp: Date.now(),
+                message: 'Iframe AR Viewer loaded'
+            }, '*');
+        }
+        
+        // Get model ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelId = urlParams.get('id') || 'Ct81wo8G';
+        
+        console.log('🎯 Loading model:', modelId);
+        
+        // Load model data
+        loadModel(modelId);
+        
+        async function loadModel(id) {
+            try {
+                const response = await fetch(`/api/models/${id}`);
+                if (!response.ok) throw new Error('Model not found');
+                
+                const modelInfo = await response.json();
+                console.log('✅ Model loaded:', modelInfo);
+                
+                // Update title
+                document.getElementById('furnitureTitle').textContent = modelInfo.title || 'AR Furniture';
+                
+                // Set model source
+                const modelViewer = document.getElementById('modelViewer');
+                modelViewer.src = modelInfo.cloudinary_url;
+                
+                // Load variants if available
+                if (modelInfo.variants && modelInfo.variants.length > 1) {
+                    loadVariants(modelInfo.variants);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading model:', error);
+                document.getElementById('furnitureTitle').textContent = '❌ Error loading model';
+            }
+        }
+        
+        function loadVariants(variants) {
+            const variantsContainer = document.getElementById('variants');
+            variantsContainer.innerHTML = '';
+            
+            variants.forEach(variant => {
+                const circle = document.createElement('div');
+                circle.className = 'variant-circle';
+                circle.style.background = variant.hex_color;
+                circle.title = variant.variant_name;
+                circle.onclick = () => switchVariant(variant);
+                variantsContainer.appendChild(circle);
+            });
+        }
+        
+        function switchVariant(variant) {
+            console.log('🎨 Switching to variant:', variant.variant_name);
+            const modelViewer = document.getElementById('modelViewer');
+            modelViewer.src = variant.cloudinary_url;
+        }
+        
+        function launchAR() {
+            const modelViewer = document.getElementById('modelViewer');
+            if (modelViewer.canActivateAR) {
+                modelViewer.activateAR();
+            } else {
+                alert('AR not supported on this device');
+            }
+        }
+        
+        // Listen for brand settings from parent
+        window.addEventListener('message', function(event) {
+            console.log('📨 Received message:', event.data);
+            
+            switch (event.data.type) {
+                case 'updateColors':
+                    updateColors(event.data.primaryColor, event.data.secondaryColor);
+                    break;
+                case 'updateLogo':
+                    updateLogo(event.data.logoData);
+                    break;
+                case 'updateFont':
+                    updateFont(event.data.fontFamily);
+                    break;
+            }
+        });
+        
+        function updateColors(primary, secondary) {
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.querySelector('.ar-button').style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+            console.log('🎨 Colors updated');
+        }
+        
+        function updateLogo(logoData) {
+            let logoImg = document.querySelector('.brand-logo');
+            if (!logoImg) {
+                logoImg = document.createElement('img');
+                logoImg.className = 'brand-logo';
+                logoImg.style.cssText = 'position: absolute; top: 10px; left: 10px; max-width: 100px; max-height: 50px; object-fit: contain;';
+                document.body.appendChild(logoImg);
+            }
+            logoImg.src = logoData;
+            console.log('🖼️ Logo updated');
+        }
+        
+        function updateFont(fontFamily) {
+            document.body.style.fontFamily = `${fontFamily}, 'Inter', sans-serif`;
+            console.log('🔤 Font updated');
+        }
+        
+        console.log('✅ Iframe AR Viewer ready');
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Response Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #0f0;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Response Checker</h1>
+
+    <button onclick="checkAPI('o8U54bIP')">Check BLUSH Model API</button>
+    <button onclick="checkFile('o8U54bIP')">Check BLUSH File API</button>
+
+    <h2>Model Info Response (/api/model/ID/info):</h2>
+    <pre id="info-response">Click button to load...</pre>
+
+    <h2>Model File Response (/api/model/ID):</h2>
+    <pre id="file-response">Click button to load...</pre>
+
+    <script>
+        async function checkAPI(modelId) {
+            const pre = document.getElementById('info-response');
+            pre.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`/api/model/${modelId}/info`);
+                const data = await response.json();
+
+                // Format the response nicely
+                const formatted = {
+                    id: data.id,
+                    title: data.title,
+                    storage_location: data.storage_location || 'NOT SET',
+                    aws_url: data.aws_url || 'NOT SET',
+                    cloudinary_url: data.cloudinary_url ? data.cloudinary_url.substring(0, 80) + '...' : 'NOT SET',
+                    file_size: data.file_size,
+                    has_variants: data.variants ? data.variants.length : 0
+                };
+
+                pre.textContent = JSON.stringify(formatted, null, 2);
+
+                // Highlight important info
+                if (data.storage_location === 'aws') {
+                    pre.style.borderLeft = '5px solid #0f0';
+                    pre.innerHTML += '\n\n✅ MODEL IS ON AWS!';
+                } else {
+                    pre.style.borderLeft = '5px solid #f00';
+                    pre.innerHTML += '\n\n❌ MODEL STILL ON CLOUDINARY';
+                }
+
+                if (data.aws_url) {
+                    pre.innerHTML += '\n\n🔗 AWS URL:\n' + data.aws_url;
+                }
+
+            } catch (error) {
+                pre.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function checkFile(modelId) {
+            const pre = document.getElementById('file-response');
+            pre.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`/api/model/${modelId}`);
+                const data = await response.json();
+
+                const formatted = {
+                    id: data.id,
+                    title: data.title,
+                    cloudinary_url: data.cloudinary_url ? data.cloudinary_url.substring(0, 80) + '...' : 'NOT SET',
+                    storage_location: data.storage_location || 'NOT SET',
+                    variants_count: data.variants ? data.variants.length : 0
+                };
+
+                pre.textContent = JSON.stringify(formatted, null, 2);
+
+                if (data.cloudinary_url && data.cloudinary_url.includes('s3.amazonaws.com')) {
+                    pre.innerHTML += '\n\n✅ URL IS FROM AWS S3!';
+                } else if (data.cloudinary_url && data.cloudinary_url.includes('cloudinary.com')) {
+                    pre.innerHTML += '\n\n❌ URL IS STILL FROM CLOUDINARY';
+                }
+
+            } catch (error) {
+                pre.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAPI('o8U54bIP');
+            checkFile('o8U54bIP');
+        });
+    </script>
+</body>
+</html>

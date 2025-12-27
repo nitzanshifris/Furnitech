@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Model Source</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .model-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .source-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .aws {
+            background: #48bb78;
+            color: white;
+        }
+        .cloudinary {
+            background: #f56565;
+            color: white;
+        }
+        .url-display {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .check-mark {
+            color: #48bb78;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .x-mark {
+            color: #f56565;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .loading {
+            color: #a0aec0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verify Model Source (AWS vs Cloudinary)</h1>
+
+        <input type="text" id="model-id" placeholder="Enter Model ID (e.g., o8U54bIP)" value="o8U54bIP">
+        <button onclick="checkModel()">Check Model Source</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function checkModel() {
+            const modelId = document.getElementById('model-id').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!modelId) {
+                alert('Please enter a Model ID');
+                return;
+            }
+
+            resultDiv.innerHTML = '<p class="loading">Checking model source...</p>';
+
+            try {
+                // Check the model in database
+                const response = await fetch(`/api/check-model-source?modelId=${modelId}`);
+                const data = await response.json();
+
+                if (!data.model) {
+                    resultDiv.innerHTML = '<p>Model not found</p>';
+                    return;
+                }
+
+                const model = data.model;
+                const isUsingAWS = model.storage_location === 'aws' && model.aws_url;
+
+                let html = `
+                    <div class="model-info">
+                        <h2>${model.title}</h2>
+                        <p><strong>Model ID:</strong> ${model.id}</p>
+
+                        <h3>Current Storage:</h3>
+                        ${isUsingAWS ?
+                            `<div>
+                                <span class="check-mark">✅</span>
+                                <span class="source-badge aws">AWS S3</span>
+                                <p>This model is being served from AWS!</p>
+                                <div class="url-display">${model.aws_url}</div>
+                                <p><strong>Migrated at:</strong> ${new Date(model.migrated_at).toLocaleString()}</p>
+                            </div>` :
+                            `<div>
+                                <span class="x-mark">❌</span>
+                                <span class="source-badge cloudinary">Cloudinary</span>
+                                <p>This model is still on Cloudinary (not migrated yet)</p>
+                                ${model.cloudinary_url ?
+                                    `<div class="url-display">${model.cloudinary_url}</div>` :
+                                    '<p>No Cloudinary URL found</p>'}
+                            </div>`
+                        }
+
+                        <h3>AR View Test:</h3>
+                        <p>When you view this model in AR, it will load from: <strong>${isUsingAWS ? 'AWS S3' : 'Cloudinary'}</strong></p>
+
+                        ${data.ar_url ?
+                            `<p><a href="${data.ar_url}" target="_blank">🔗 Test AR View</a></p>` :
+                            ''}
+                    </div>
+                `;
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<p>Error checking model: ${error.message}</p>`;
+            }
+        }
+
+        // Check BLUSH model on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkModel();
+        });
+    </script>
+</body>
+</html>

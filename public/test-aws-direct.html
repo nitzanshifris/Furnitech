@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AWS S3 Model Loading</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+    </style>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 AWS S3 Model Loading Test</h1>
+
+        <div class="test-section">
+            <h2>1. Fetch Model Info from API</h2>
+            <button onclick="fetchModelInfo()">Fetch BLUSH Model Info</button>
+            <div id="api-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Direct AWS URL Test</h2>
+            <button onclick="testDirectAWS()">Test Direct AWS Loading</button>
+            <div id="aws-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Model Viewer Test</h2>
+            <button onclick="loadInViewer()">Load in Model Viewer</button>
+            <div id="viewer-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. CORS Test</h2>
+            <button onclick="testCORS()">Test CORS Headers</button>
+            <div id="cors-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const MODEL_ID = 'o8U54bIP'; // BLUSH model
+        let modelData = null;
+
+        async function fetchModelInfo() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<div class="status info">Fetching model info...</div>';
+
+            try {
+                const response = await fetch(`/api/model/${MODEL_ID}/info`);
+                const data = await response.json();
+                modelData = data;
+
+                const html = `
+                    <div class="status success">✅ Model info fetched successfully!</div>
+                    <pre>${JSON.stringify({
+                        id: data.id,
+                        title: data.title,
+                        storage_location: data.storage_location,
+                        cloudinary_url: data.cloudinary_url ? '✓ Present' : '✗ Missing',
+                        aws_url: data.aws_url || 'Not migrated yet'
+                    }, null, 2)}</pre>
+                `;
+                resultDiv.innerHTML = html;
+
+                if (data.aws_url) {
+                    resultDiv.innerHTML += `<div class="status success">🎉 Model has been migrated to AWS!</div>`;
+                } else {
+                    resultDiv.innerHTML += `<div class="status error">⚠️ Model not yet migrated to AWS</div>`;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testDirectAWS() {
+            const resultDiv = document.getElementById('aws-result');
+
+            if (!modelData) {
+                resultDiv.innerHTML = '<div class="status error">Please fetch model info first</div>';
+                return;
+            }
+
+            const url = modelData.aws_url || modelData.cloudinary_url;
+            resultDiv.innerHTML = `<div class="status info">Testing URL: ${url}</div>`;
+
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+
+                if (response.ok) {
+                    resultDiv.innerHTML += `<div class="status success">✅ URL is accessible! Status: ${response.status}</div>`;
+
+                    // Check headers
+                    const headers = {};
+                    response.headers.forEach((value, key) => {
+                        headers[key] = value;
+                    });
+
+                    resultDiv.innerHTML += `<pre>Headers:\n${JSON.stringify(headers, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML += `<div class="status error">❌ Failed to access URL. Status: ${response.status}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `<div class="status error">❌ CORS or Network Error: ${error.message}</div>`;
+            }
+        }
+
+        function loadInViewer() {
+            const container = document.getElementById('viewer-container');
+
+            if (!modelData) {
+                container.innerHTML = '<div class="status error">Please fetch model info first</div>';
+                return;
+            }
+
+            const url = modelData.aws_url || modelData.cloudinary_url;
+            const isAWS = modelData.storage_location === 'aws';
+
+            container.innerHTML = `
+                <div class="status info">Loading from ${isAWS ? 'AWS S3' : 'Cloudinary'}...</div>
+                <model-viewer
+                    id="test-viewer"
+                    src="${url}"
+                    auto-rotate
+                    camera-controls
+                    shadow-intensity="1"
+                    exposure="1"
+                    style="width: 100%; height: 400px;"
+                ></model-viewer>
+            `;
+
+            const viewer = document.getElementById('test-viewer');
+
+            viewer.addEventListener('load', () => {
+                container.innerHTML = `<div class="status success">✅ Model loaded successfully from ${isAWS ? 'AWS S3' : 'Cloudinary'}!</div>` + container.innerHTML;
+            });
+
+            viewer.addEventListener('error', (e) => {
+                container.innerHTML = `<div class="status error">❌ Failed to load model: ${e.detail?.message || 'Unknown error'}</div>` + container.innerHTML;
+            });
+        }
+
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+
+            if (!modelData || !modelData.aws_url) {
+                resultDiv.innerHTML = '<div class="status error">No AWS URL available</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="status info">Testing CORS configuration...</div>';
+
+            try {
+                const response = await fetch(modelData.aws_url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Range': 'bytes=0-100'
+                    }
+                });
+
+                if (response.ok || response.status === 206) {
+                    resultDiv.innerHTML = '<div class="status success">✅ CORS is properly configured!</div>';
+
+                    const corsHeaders = {
+                        'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+                        'access-control-allow-methods': response.headers.get('access-control-allow-methods'),
+                        'content-type': response.headers.get('content-type')
+                    };
+
+                    resultDiv.innerHTML += `<pre>CORS Headers:\n${JSON.stringify(corsHeaders, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ Request failed with status: ${response.status}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ CORS Error: ${error.message}<br>This likely means CORS is not configured on the S3 bucket</div>`;
+            }
+        }
+
+        // Auto-run first test
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(fetchModelInfo, 500);
+        });
+    </script>
+</body>
+</html>

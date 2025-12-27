@@ -1,0 +1,194 @@
+{
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    },
+    "api/backup-with-variations.js": {
+      "maxDuration": 30
+    },
+    "api/migrate-all-models.js": {
+      "maxDuration": 60
+    },
+    "api/migrate-model-with-variants.js": {
+      "maxDuration": 30
+    },
+    "api/[...route].js": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/get-upload-url",
+      "destination": "/api/get-upload-url.js"
+    },
+    {
+      "source": "/api/save-model-metadata",
+      "destination": "/api/save-model-metadata.js"
+    },
+    {
+      "source": "/f/(.*)",
+      "destination": "/api/index.js?route=f&path=$1"
+    },
+    {
+      "source": "/qr/(.*)",
+      "destination": "/api/index.js?route=qr&path=$1"
+    },
+    {
+      "source": "/api/sheets/(.*)",
+      "destination": "/api/sheets/$1"
+    },
+    {
+      "source": "/api/aws-test",
+      "destination": "/api/aws-test.js"
+    },
+    {
+      "source": "/api/find-test-model",
+      "destination": "/api/find-test-model.js"
+    },
+    {
+      "source": "/api/migrate-rocker",
+      "destination": "/api/migrate-rocker.js"
+    },
+    {
+      "source": "/api/aws-model-proxy",
+      "destination": "/api/aws-model-proxy.js"
+    },
+    {
+      "source": "/api/backup-database",
+      "destination": "/api/backup-database.js"
+    },
+    {
+      "source": "/api/backup-with-variations",
+      "destination": "/api/backup-with-variations.js"
+    },
+    {
+      "source": "/api/migrate-batch",
+      "destination": "/api/migrate-batch.js"
+    },
+    {
+      "source": "/api/setup-migration-tables",
+      "destination": "/api/setup-migration-tables.js"
+    },
+    {
+      "source": "/api/migrate-single-model",
+      "destination": "/api/migrate-single-model.js"
+    },
+    {
+      "source": "/api/migrate-model-with-variants",
+      "destination": "/api/migrate-model-with-variants.js"
+    },
+    {
+      "source": "/api/check-cloudinary-urls",
+      "destination": "/api/check-cloudinary-urls.js"
+    },
+    {
+      "source": "/api/migrate-all-models",
+      "destination": "/api/migrate-all-models.js"
+    },
+    {
+      "source": "/api/migrate-problematic",
+      "destination": "/api/migrate-problematic.js"
+    },
+    {
+      "source": "/migrate-test",
+      "destination": "/migrate-test.html"
+    },
+    {
+      "source": "/batch-migration",
+      "destination": "/batch-migration.html"
+    },
+    {
+      "source": "/simple-migrate",
+      "destination": "/simple-migrate.html"
+    },
+    {
+      "source": "/fix-problematic",
+      "destination": "/fix-problematic.html"
+    },
+    {
+      "source": "/aws-status",
+      "destination": "/aws-status.html"
+    },
+    {
+      "source": "/verify-aws-loading",
+      "destination": "/verify-aws-loading.html"
+    },
+    {
+      "source": "/network-verify",
+      "destination": "/network-verify.html"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/customer",
+      "destination": "/customer.html"
+    },
+    {
+      "source": "/view",
+      "destination": "/view.html"
+    },
+    {
+      "source": "/homepage",
+      "destination": "/homepage.html"
+    },
+    {
+      "source": "/iframe-debug",
+      "destination": "/iframe_debug.html"
+    },
+    {
+      "source": "/iframe-diagnostic",
+      "destination": "/iframe_diagnostic.html"
+    },
+    {
+      "source": "/simple-test",
+      "destination": "/simple_test.html"
+    },
+    {
+      "source": "/view-minimal",
+      "destination": "/view_minimal.html"
+    },
+    {
+      "source": "/header-test",
+      "destination": "/header_test.html"
+    },
+    {
+      "source": "/iframe-simple-test",
+      "destination": "/iframe_simple_test.html"
+    },
+    {
+      "source": "/iframe-view",
+      "destination": "/iframe_view.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' *.newfurniture.live localhost:* http://localhost:*" }
+      ]
+    }
+  ]
+}

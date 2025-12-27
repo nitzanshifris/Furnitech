@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>newfurniture.live - פלטפורמת AR מתקדמת לרהיטים</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="הפכו את עסק הרהיטים שלכם עם מציאות רבודה. אפשרו ללקוחות לראות מוצרים בחלל שלהם באופן מיידי.">
+    <meta name="keywords" content="רהיטי AR, מציאות רבודה, הדמיה תלת מימדית, פלטפורמת רהיטים">
+    <meta name="theme-color" content="#0a0c10">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="newfurniture.live - פלטפורמת AR מתקדמת לרהיטים">
+    <meta property="og:description" content="הפכו את עסק הרהיטים שלכם עם מציאות רבודה.">
+    <meta property="og:type" content="website">
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+    
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --spacing-micro: 8px;
+            --spacing-small: 16px;
+            --spacing-medium: 32px;
+            --spacing-large: 64px;
+            --spacing-xlarge: 128px;
+            --spacing-section: 160px;
+            
+            --text-primary: #e6edf3;
+            --text-secondary: #7d8590;
+            --bg-primary: #0a0c10;
+            --bg-secondary: rgba(22, 27, 34, 0.95);
+            --glass: rgba(240, 246, 252, 0.05);
+            --glass-hover: rgba(240, 246, 252, 0.08);
+            --border: rgba(240, 246, 252, 0.1);
+            
+            --max-width: 1200px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0c10 0%, #0d1117 50%, #111418 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="0.5" fill="%23ffffff" opacity="0.02"/><circle cx="75" cy="75" r="0.3" fill="%23ffffff" opacity="0.02"/><circle cx="50" cy="10" r="0.4" fill="%23ffffff" opacity="0.01"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>'),
+                linear-gradient(180deg, rgba(88, 166, 255, 0.02) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .nav-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--spacing-medium);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-direction: row-reverse;
+        }
+        
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: var(--spacing-large);
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 400;
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-cta {
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.15) 0%, rgba(120, 119, 198, 0.15) 100%);
+            color: var(--text-primary);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            padding: 12px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .nav-cta:hover {
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.25) 0%, rgba(120, 119, 198, 0.25) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(88, 166, 255, 0.2);
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xlarge) var(--spacing-medium);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xlarge);
+            align-items: center;
+        }
+        
+        .hero-content {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .hero-title {
+            font-size: 72px;
+            font-weight: 300;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: var(--spacing-medium);
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-title .highlight-yours {
+            font-weight: 600;
+            background: linear-gradient(135deg, #58A6FF 0%, #7877C6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+        }
+        
+        .hero-title .highlight-theirs {
+            font-weight: 600;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+            text-decoration: underline;
+            text-decoration-color: rgba(255, 107, 107, 0.4);
+            text-underline-offset: 8px;
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-large);
+            max-width: 480px;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: var(--spacing-small);
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        
+        .btn {
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.9) 0%, rgba(120, 119, 198, 0.9) 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(88, 166, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(88, 166, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--glass);
+            border-color: rgba(240, 246, 252, 0.2);
+        }
+        
+        /* Hero Stats */
+        .hero-stats {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: var(--spacing-large);
+            margin: var(--spacing-medium) 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            backdrop-filter: none;
+            animation: fadeInUp 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+            animation-delay: 0.4s;
+            animation-fill-mode: both;
+            max-width: 480px;
+        }
+        
+        .hero-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+        }
+        
+        .hero-stat:hover {
+            transform: translateY(-3px);
+        }
+        
+        .hero-stat:hover .hero-stat-number {
+            transform: scale(1.05);
+        }
+        
+        .hero-stat-number {
+            font-size: 34px;
+            font-weight: 600;
+            background: linear-gradient(135deg, 
+                #ffffff 0%,
+                #e8f4fd 20%,
+                rgba(88, 166, 255, 0.9) 40%,
+                rgba(120, 119, 198, 0.95) 60%,
+                #e8f4fd 80%,
+                #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.8px;
+            line-height: 1;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            filter: drop-shadow(0 2px 8px rgba(88, 166, 255, 0.3));
+        }
+        
+        .hero-stat-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            text-align: center;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        
+        .hero-stat-source {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            border-bottom: 1px solid transparent;
+        }
+        
+        .hero-stat-source:hover {
+            color: rgba(88, 166, 255, 0.9);
+            border-bottom-color: rgba(88, 166, 255, 0.5);
+        }
+        
+        .hero-stat-divider {
+            display: none;
+        }
+        
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-visual {
+            position: relative;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        .carousel-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            /* Hardware acceleration for smooth transitions */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        
+        .hero-model {
+            width: 100%;
+            height: 600px;
+            border-radius: 24px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        
+        .carousel-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: scale(0.95) translateZ(0);
+            z-index: 1;
+            /* Hardware acceleration */
+            backface-visibility: hidden;
+            will-change: opacity, transform;
+        }
+        
+        .carousel-item.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateZ(0);
+            z-index: 2;
+        }
+        
+        .carousel-item.fade-out {
+            opacity: 0;
+            visibility: visible;
+            transform: scale(1.05) translateZ(0);
+            z-index: 1;
+            transition: all 1.2s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+        }
+        
+        .carousel-dots {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform: scale(1);
+        }
+        
+        .dot:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .dot.active {
+            background: rgba(255, 255, 255, 0.9);
+            width: 20px;
+            border-radius: 4px;
+            transform: scale(1);
+        }
+        
+        .dot.active:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        
+        /* Trust Section */
+        .trust {
+            padding: var(--spacing-section) 0;
+            position: relative;
+            z-index: 2;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .trust-container {
+            width: 100%;
+            text-align: center;
+            padding: 0 var(--spacing-medium);
+        }
+        
+        .trust-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--spacing-large);
+        }
+        
+        .trust-carousel-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            margin-top: var(--spacing-medium);
+        }
+        
+        .trust-carousel {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xlarge);
+            filter: grayscale(1);
+            opacity: 0.8;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+            white-space: nowrap;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .trust-carousel:hover {
+            filter: grayscale(0.3);
+            opacity: 1;
+        }
+        
+        .trust-logo {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+        
+        .trust-logo:hover {
+            color: var(--text-primary);
+        }
+        
+        @keyframes scroll-rtl {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .trust-logo {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            padding: 0 var(--spacing-medium);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: var(--spacing-section) var(--spacing-medium);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .features-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+        
+        .features-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xlarge);
+        }
+        
+        .section-title {
+            font-size: 48px;
+            font-weight: 300;
+            line-height: 1.2;
+            letter-spacing: -1px;
+            margin-bottom: var(--spacing-small);
+            background: linear-gradient(135deg, #ffffff 0%, #d0d0d0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-medium);
+        }
+        
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: var(--spacing-large);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-card:hover {
+            background: var(--glass-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.2) 0%, rgba(120, 119, 198, 0.2) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-medium);
+            font-size: 24px;
+            color: rgba(88, 166, 255, 0.8);
+        }
+        
+        .feature-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: var(--spacing-small);
+            color: var(--text-primary);
+        }
+        
+        .feature-description {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* Demo Section */
+        .demo {
+            padding: var(--spacing-section) var(--spacing-medium);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .demo-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xlarge);
+            align-items: center;
+        }
+        
+        .demo-content {
+            order: 1;
+        }
+        
+        .demo-visual {
+            order: 2;
+            position: relative;
+        }
+        
+        .demo-model {
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+        }
+        
+        .demo-badge {
+            position: absolute;
+            top: var(--spacing-medium);
+            right: var(--spacing-medium);
+            background: rgba(88, 166, 255, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Pricing Section */
+        .pricing {
+            padding: var(--spacing-large) var(--spacing-medium);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .pricing-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .free-model-card {
+            background: linear-gradient(135deg, var(--glass) 0%, rgba(240, 246, 252, 0.03) 100%);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: var(--spacing-large);
+            margin-top: var(--spacing-large);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .free-model-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(88, 166, 255, 0.8) 0%, rgba(120, 119, 198, 0.8) 100%);
+        }
+        
+        .pricing-card {
+            background: linear-gradient(135deg, var(--glass) 0%, rgba(240, 246, 252, 0.03) 100%);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: var(--spacing-xlarge);
+            margin-top: var(--spacing-large);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(88, 166, 255, 0.8) 0%, rgba(120, 119, 198, 0.8) 100%);
+        }
+        
+        .pricing-price {
+            font-size: 64px;
+            font-weight: 300;
+            margin: var(--spacing-medium) 0;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pricing-price span {
+            font-size: 24px;
+            color: var(--text-secondary);
+        }
+        
+        .pricing-features {
+            list-style: none;
+            margin: var(--spacing-large) 0;
+            text-align: left;
+        }
+        
+        .pricing-features li {
+            padding: var(--spacing-small) 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-small);
+        }
+        
+        .pricing-features li::before {
+            content: '✓';
+            color: rgba(88, 166, 255, 0.8);
+            font-weight: 600;
+            margin-left: var(--spacing-small);
+        }
+        
+        /* Footer */
+        .footer {
+            padding: var(--spacing-large) var(--spacing-medium);
+            border-top: 1px solid var(--border);
+            position: relative;
+            z-index: 2;
+            margin-top: var(--spacing-xlarge);
+        }
+        
+        .footer-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-copyright {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: var(--spacing-medium);
+            list-style: none;
+        }
+        
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Mobile Menu Toggle */
+        .nav-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .nav-toggle span {
+            width: 24px;
+            height: 2px;
+            background: var(--text-primary);
+            transition: var(--transition);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero-container,
+            .demo-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-content {
+                order: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .hero-visual {
+                order: 2;
+            }
+            
+            .hero-buttons {
+                justify-content: center;
+            }
+            
+            .hero-stats {
+                margin: var(--spacing-small) 0;
+                max-width: 100%;
+                gap: var(--spacing-medium);
+                justify-content: center;
+            }
+            
+            .hero-stat {
+                padding: var(--spacing-small) 8px;
+            }
+            
+            .hero-stat-number {
+                font-size: 28px;
+            }
+            
+            .hero-stat-label {
+                font-size: 12px;
+            }
+            
+            .hero-stat-source {
+                font-size: 10px;
+            }
+            
+            .hero-title {
+                font-size: 56px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-content {
+                order: 2;
+            }
+            
+            .demo-visual {
+                order: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --spacing-section: 80px;
+            }
+            
+            .nav-toggle {
+                display: flex;
+            }
+            
+            .nav-menu {
+                position: fixed;
+                top: 88px;
+                left: 0;
+                right: 0;
+                background: var(--bg-secondary);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: var(--spacing-medium);
+                border-bottom: 1px solid var(--border);
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: var(--transition);
+            }
+            
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            .hero-title {
+                font-size: 48px;
+            }
+            
+            .hero-subtitle {
+                font-size: 18px;
+            }
+            
+            .hero-model,
+            .carousel-container {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .carousel-dots {
+                bottom: -30px;
+            }
+            
+            .section-title {
+                font-size: 32px;
+            }
+            
+            .trust-carousel {
+                gap: var(--spacing-medium);
+            }
+            
+            .pricing-price {
+                font-size: 48px;
+            }
+            
+            .footer-container {
+                flex-direction: column;
+                gap: var(--spacing-medium);
+                text-align: center;
+            }
+        }
+        
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: rgba(88, 166, 255, 0.8);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">NEWFURNITURE</a>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#features" class="nav-link">יכולות</a></li>
+                <li><a href="#demo" class="nav-link">הדגמה</a></li>
+                <li><a href="#pricing" class="nav-link">מחירים</a></li>
+                <li><a href="/login.html" class="nav-cta">התחילו עכשיו</a></li>
+            </ul>
+            
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title"><span class="highlight-yours">המוצר שלכם</span><br><span class="highlight-theirs">בחדר שלהם</span></h1>
+                <p class="hero-subtitle">
+                    יותר מכירות, פחות החזרות. פשוט.
+                </p>
+                
+                <!-- Conversion Stats -->
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">+40%</span>
+                        <span class="hero-stat-label">שיפור בהמרות</span>
+                        <a href="https://www.shopify.com/retail/retail-trends" target="_blank" rel="noopener" class="hero-stat-source">BigCommerce</a>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">+94%</span>
+                        <span class="hero-stat-label">שיעור המרה גבוה יותר</span>
+                        <a href="https://www.shopify.com/retail/retail-trends" target="_blank" rel="noopener" class="hero-stat-source">Shopify</a>
+                    </div>
+                </div>
+                
+                <div class="hero-buttons">
+                    <a href="/login.html" class="btn btn-primary">התחילו ניסיון חינם</a>
+                    <a href="#demo" class="btn btn-secondary">צפו בהדגמה</a>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="carousel-container">
+                    <model-viewer 
+                        class="hero-model carousel-item active"
+                        id="model1"
+                        src="/model.glb"
+                        alt="מודל רהיטים תלת מימדי"
+                        auto-rotate
+                        camera-controls
+                        shadow-intensity="1"
+                        exposure="0.5"
+                        disable-zoom
+                        interaction-prompt="none"
+                        ar
+                        ar-modes="scene-viewer quick-look"
+                        camera-orbit="0deg 75deg 4m"
+                        field-of-view="20deg">
+                    </model-viewer>
+                    
+                    <model-viewer 
+                        class="hero-model carousel-item"
+                        id="model2"
+                        src="/chair.glb"
+                        alt="כיסא מעוצב"
+                        auto-rotate
+                        camera-controls
+                        shadow-intensity="1"
+                        exposure="0.5"
+                        disable-zoom
+                        interaction-prompt="none"
+                        ar
+                        ar-modes="scene-viewer quick-look"
+                        camera-orbit="0deg 75deg 4m"
+                        field-of-view="20deg">
+                    </model-viewer>
+                    
+                    <model-viewer 
+                        class="hero-model carousel-item"
+                        id="model3"
+                        src="/sofa.glb"
+                        alt="ספה מודרנית"
+                        auto-rotate
+                        camera-controls
+                        shadow-intensity="1"
+                        exposure="0.5"
+                        disable-zoom
+                        interaction-prompt="none"
+                        ar
+                        ar-modes="scene-viewer quick-look"
+                        camera-orbit="0deg 75deg 4m"
+                        field-of-view="20deg">
+                    </model-viewer>
+                    
+                    <div class="carousel-dots">
+                        <span class="dot active" onclick="currentSlide(1)"></span>
+                        <span class="dot" onclick="currentSlide(2)"></span>
+                        <span class="dot" onclick="currentSlide(3)"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Trust Indicators -->
+    <section class="trust fade-in">
+        <div class="trust-container">
+            <p class="trust-title">נבחרו על ידי מובילי השוק</p>
+            <div class="trust-carousel-container">
+                <div class="trust-logos trust-carousel">
+                    <span class="trust-logo">איקאה</span>
+                    <span class="trust-logo">טולמנס</span>
+                    <span class="trust-logo">נגרית הצפון</span>
+                    <span class="trust-logo">ביתילי</span>
+                    <span class="trust-logo">אמריקן קומפורט</span>
+                    <span class="trust-logo">רהיטי דר</span>
+                    <span class="trust-logo">שילב</span>
+                    <span class="trust-logo">כתר פלסטיק</span>
+                    <span class="trust-logo">רהיטי עמירם</span>
+                    <span class="trust-logo">הום סטיילינג</span>
+                    <span class="trust-logo">ארגון הבית</span>
+                    <span class="trust-logo">רהיטי כרמל</span>
+                    <span class="trust-logo">מעצבי חן</span>
+                    <span class="trust-logo">סטודיו שינקין</span>
+                    <span class="trust-logo">רהיטי יפו</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features fade-in" id="features">
+        <div class="features-container">
+            <div class="features-header">
+                <h2 class="section-title">כל מה שאתם צריכים</h2>
+                <p class="section-subtitle">
+                    פלטפורמה מלאה שתוכננה להעלות את עסק הרהיטים שלכם לרמה הבאה
+                </p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12" y2="18"></line>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">תצוגת AR מיידית</h3>
+                    <p class="feature-description">
+                        לקוחות רואים רהיטים בחלל שלהם בלחיצה אחת.
+                        ללא צורך בהורדת אפליקציה.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">וריאציות מרובות</h3>
+                    <p class="feature-description">
+                        הציגו צבעים, חומרים וגדלים שונים.
+                        תנו ללקוחות למצוא את ההתאמה המושלמת.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">לוח בקרה אנליטי</h3>
+                    <p class="feature-description">
+                        עקבו אחר צפיות, אינטראקציות והמרות.
+                        הבינו מה מניע מכירות.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">אינטגרציה קלה</h3>
+                    <p class="feature-description">
+                        שתפו קישורים בכל מקום. הטמיעו באתר שלכם.
+                        עובד עם הכלים הקיימים שלכם.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">מהירות בזק</h3>
+                    <p class="feature-description">
+                        מודלים תלת מימדיים מותאמים נטענים מיידית.
+                        ללא המתנה, ללא תסכול.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">אבטחה ארגונית</h3>
+                    <p class="feature-description">
+                        הנתונים שלכם מוגנים בהצפנה ברמה בנקאית.
+                        תואם SOC2.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Demo Section -->
+    <section class="demo fade-in" id="demo">
+        <div class="demo-container">
+            <div class="demo-content">
+                <h2 class="section-title">צפו בקסם</h2>
+                <p class="section-subtitle">
+                    נסו בעצמכם. לחצו על כפתור ה-AR כדי למקם את הכיסא הזה בחלל שלכם עכשיו.
+                </p>
+                <p style="margin-top: var(--spacing-medium); color: var(--text-secondary); font-size: 14px;">
+                    עובד על iPhone 12+ ומכשירי אנדרואיד מודרניים
+                </p>
+            </div>
+            
+            <div class="demo-visual">
+                <div class="demo-badge">נסו AR עכשיו</div>
+                <model-viewer 
+                    class="demo-model"
+                    src="https://modelviewer.dev/shared-assets/models/Chair.glb"
+                    alt="כיסא מודרני"
+                    auto-rotate
+                    camera-controls
+                    shadow-intensity="1"
+                    ar
+                    ar-modes="scene-viewer quick-look"
+                    ar-scale="fixed"
+                    ios-src="https://modelviewer.dev/shared-assets/models/Chair.usdz">
+                    <button slot="ar-button" style="
+                        background: linear-gradient(135deg, rgba(88, 166, 255, 0.9) 0%, rgba(120, 119, 198, 0.9) 100%);
+                        border: none;
+                        border-radius: 12px;
+                        color: white;
+                        padding: 12px 24px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        position: absolute;
+                        bottom: 20px;
+                        right: 20px;
+                        cursor: pointer;
+                    ">
+                        צפו בחלל שלכם
+                    </button>
+                </model-viewer>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Free Model Section -->
+    <section class="pricing fade-in" id="pricing">
+        <div class="pricing-container">
+            <h2 class="section-title">בקשו דוגמת מודל תלת מימדי חינם היום</h2>
+            <p class="section-subtitle">
+                נהפוך את אחד המוצרים שלכם למודל AR אינטראקטיבי - בחינם לגמרי
+            </p>
+            
+            <div class="free-model-card">
+                <div class="feature-icon" style="width: 60px; height: 60px; margin: 0 auto var(--spacing-small);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <h3 style="font-size: 24px; margin-bottom: var(--spacing-small);">ללא עלות • ללא התחייבות</h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-medium); max-width: 500px; margin-left: auto; margin-right: auto;">
+                    שלחו לנו תמונות של המוצר שלכם ונחזיר אליכם מודל תלת מימדי מוכן ל-AR תוך 48 שעות
+                </p>
+                <ul class="pricing-features" style="max-width: 400px; margin: 0 auto var(--spacing-large);">
+                    <li>סריקה מקצועית באיכות גבוהה</li>
+                    <li>אופטימיזציה לטעינה מהירה</li>
+                    <li>תמיכה מלאה ב-AR</li>
+                    <li>קישור לשיתוף מיידי</li>
+                </ul>
+                <a href="/login.html" class="btn btn-primary" style="padding: 20px 60px; font-size: 18px;">
+                    קבלו מודל חינם
+                </a>
+                <p style="margin-top: var(--spacing-small); color: var(--text-secondary); font-size: 14px;">
+                    מוגבל למודל אחד לעסק
+                </p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-copyright">
+                © 2024 newfurniture.live. כל הזכויות שמורות.
+            </div>
+            <ul class="footer-links">
+                <li><a href="#" class="footer-link">פרטיות</a></li>
+                <li><a href="#" class="footer-link">תנאי שימוש</a></li>
+                <li><a href="#" class="footer-link">צור קשר</a></li>
+            </ul>
+        </div>
+    </footer>
+    
+    <script>
+        // Carousel functionality with smooth Apple-style transitions
+        let slideIndex = 1;
+        let autoSlideInterval;
+        let isTransitioning = false;
+        
+        function currentSlide(n) {
+            if (isTransitioning) return;
+            clearInterval(autoSlideInterval);
+            showSlide(slideIndex = n);
+            startAutoSlide();
+        }
+        
+        function showSlide(n) {
+            if (isTransitioning) return;
+            
+            let slides = document.getElementsByClassName("carousel-item");
+            let dots = document.getElementsByClassName("dot");
+            
+            if (n > slides.length) { slideIndex = 1 }
+            if (n < 1) { slideIndex = slides.length }
+            
+            isTransitioning = true;
+            
+            // Find currently active slide
+            let currentActive = document.querySelector('.carousel-item.active');
+            
+            // Update dots immediately for responsiveness
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].classList.remove("active");
+            }
+            dots[slideIndex - 1].classList.add("active");
+            
+            // Start fade out of current slide
+            if (currentActive) {
+                currentActive.classList.add('fade-out');
+                currentActive.classList.remove('active');
+                
+                // Wait for fade out to complete, then fade in new slide
+                setTimeout(() => {
+                    // Clean up all slides
+                    for (let i = 0; i < slides.length; i++) {
+                        slides[i].classList.remove("active", "fade-out");
+                    }
+                    
+                    // Activate new slide after fade out is complete
+                    let nextSlide = slides[slideIndex - 1];
+                    nextSlide.classList.add("active");
+                    
+                    // Reset transition flag after fade in completes
+                    setTimeout(() => {
+                        isTransitioning = false;
+                    }, 1200);
+                }, 1200); // Wait for full fade out duration
+            } else {
+                // No current slide, just activate new one
+                let nextSlide = slides[slideIndex - 1];
+                nextSlide.classList.add("active");
+                setTimeout(() => {
+                    isTransitioning = false;
+                }, 1200);
+            }
+        }
+        
+        function nextSlide() {
+            if (!isTransitioning) {
+                showSlide(slideIndex += 1);
+            }
+        }
+        
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(nextSlide, 6000); // Increased to 6 seconds for better UX
+        }
+        
+        // Start auto-slide on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            startAutoSlide();
+            animateStats();
+        });
+        
+        // Animate stats counter with easing
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.hero-stat-number');
+            const targets = [40, 94];
+            
+            // Reset numbers to 0 initially
+            statNumbers.forEach((element) => {
+                element.textContent = '+0%';
+            });
+            
+            // Start animation after a delay
+            setTimeout(() => {
+                statNumbers.forEach((element, index) => {
+                    const target = targets[index];
+                    const duration = 2500; // 2.5 seconds
+                    const startTime = Date.now();
+                    
+                    function animate() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        // Apple-like easing function
+                        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                        const current = Math.floor(target * easeOutCubic);
+                        
+                        element.textContent = '+' + current + '%';
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            element.textContent = '+' + target + '%';
+                        }
+                    }
+                    
+                    animate();
+                });
+            }, 800); // Delay start by 800ms
+        }
+        
+        // Mobile menu toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        navToggle?.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const offset = 100;
+                    const targetPosition = target.offsetTop - offset;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    // Close mobile menu if open
+                    navMenu.classList.remove('active');
+                }
+            });
+        });
+        
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Add scroll effect to nav
+        let lastScroll = 0;
+        const nav = document.querySelector('.nav');
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 100) {
+                nav.style.background = 'rgba(22, 27, 34, 0.98)';
+                nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+            } else {
+                nav.style.background = 'var(--bg-secondary)';
+                nav.style.boxShadow = 'none';
+            }
+            
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>

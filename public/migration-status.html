@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Migration Status Check</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .aws { color: #48bb78; }
+        .cloudinary { color: #f56565; }
+        .pending { color: #a0aec0; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-aws {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .badge-cloudinary {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .test-card {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AWS Migration Status Dashboard</h1>
+
+        <div class="test-card">
+            <h2>✅ Successfully Migrated Model: BLUSH</h2>
+            <p><strong>Model ID:</strong> o8U54bIP</p>
+            <p><strong>Test this model:</strong></p>
+            <button onclick="testBlush()">Test BLUSH in AR View</button>
+            <button onclick="checkBlushAPI()">Check BLUSH API Response</button>
+            <div id="blush-result"></div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Models</div>
+                <div class="stat-value" id="total">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">On AWS</div>
+                <div class="stat-value aws" id="aws-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">On Cloudinary</div>
+                <div class="stat-value cloudinary" id="cloudinary-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Migration Progress</div>
+                <div class="stat-value" id="progress">-</div>
+            </div>
+        </div>
+
+        <h2>All Models Status</h2>
+        <button onclick="loadStatus()">Refresh Status</button>
+        <button onclick="showOnlyCloudinary()">Show Only Unmigrated</button>
+
+        <table id="models-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>ID</th>
+                    <th>Storage</th>
+                    <th>Size (MB)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="models-list">
+                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadStatus() {
+            try {
+                // This would need an API endpoint to list all models
+                // For now, let's check the known migrated model
+                const response = await fetch('/api/models');
+                const data = await response.json();
+
+                if (data.models) {
+                    displayModels(data.models);
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+                document.getElementById('models-list').innerHTML =
+                    '<tr><td colspan="5">Error loading models. Check console.</td></tr>';
+            }
+        }
+
+        async function testBlush() {
+            window.open('/view?id=o8U54bIP', '_blank');
+        }
+
+        async function checkBlushAPI() {
+            const resultDiv = document.getElementById('blush-result');
+            resultDiv.innerHTML = '<p>Checking API...</p>';
+
+            try {
+                const response = await fetch('/api/model/o8U54bIP/info');
+                const data = await response.json();
+
+                const isAWS = data.storage_location === 'aws';
+                const awsUrl = data.aws_url;
+
+                resultDiv.innerHTML = `
+                    <div style="margin-top: 15px; padding: 15px; background: ${isAWS ? '#c6f6d5' : '#fed7d7'}; border-radius: 6px;">
+                        <p><strong>Storage Location:</strong> ${data.storage_location || 'cloudinary'}</p>
+                        <p><strong>Has AWS URL:</strong> ${awsUrl ? '✅ Yes' : '❌ No'}</p>
+                        ${awsUrl ? `<p><strong>AWS URL:</strong> <code style="font-size: 11px;">${awsUrl}</code></p>` : ''}
+                        <p><strong>Status:</strong> ${isAWS ? '✅ Using AWS S3!' : '❌ Still on Cloudinary'}</p>
+                    </div>
+                `;
+
+                if (isAWS) {
+                    // Test if the AWS URL actually works
+                    try {
+                        const testResponse = await fetch(awsUrl, { method: 'HEAD', mode: 'no-cors' });
+                        resultDiv.innerHTML += '<p style="color: green;">✅ AWS URL is accessible!</p>';
+                    } catch (e) {
+                        resultDiv.innerHTML += '<p style="color: orange;">⚠️ Could not verify AWS URL (CORS)</p>';
+                    }
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayModels(models) {
+            const tbody = document.getElementById('models-list');
+            const stats = {
+                total: models.length,
+                aws: 0,
+                cloudinary: 0
+            };
+
+            const rows = models.map(model => {
+                const isAWS = model.storage_location === 'aws';
+                if (isAWS) stats.aws++;
+                else stats.cloudinary++;
+
+                return `
+                    <tr>
+                        <td>${model.title}</td>
+                        <td><code>${model.id}</code></td>
+                        <td>
+                            <span class="badge ${isAWS ? 'badge-aws' : 'badge-cloudinary'}">
+                                ${isAWS ? 'AWS S3' : 'Cloudinary'}
+                            </span>
+                        </td>
+                        <td>${model.file_size ? (model.file_size / 1024 / 1024).toFixed(2) : '-'}</td>
+                        <td>
+                            <button onclick="window.open('/view?id=${model.id}', '_blank')">Test</button>
+                            ${!isAWS ? `<button onclick="migrateModel('${model.id}')">Migrate</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows || '<tr><td colspan="5">No models found</td></tr>';
+
+            // Update stats
+            document.getElementById('total').textContent = stats.total;
+            document.getElementById('aws-count').textContent = stats.aws;
+            document.getElementById('cloudinary-count').textContent = stats.cloudinary;
+            document.getElementById('progress').textContent =
+                stats.total > 0 ? Math.round((stats.aws / stats.total) * 100) + '%' : '0%';
+        }
+
+        function showOnlyCloudinary() {
+            const rows = document.querySelectorAll('#models-list tr');
+            rows.forEach(row => {
+                if (row.innerHTML.includes('badge-aws')) {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        async function migrateModel(modelId) {
+            if (confirm(`Migrate model ${modelId} to AWS?`)) {
+                alert('Use the migration tool at /migrate-test.html');
+            }
+        }
+
+        // Check BLUSH on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkBlushAPI();
+            loadStatus();
+        });
+    </script>
+</body>
+</html>

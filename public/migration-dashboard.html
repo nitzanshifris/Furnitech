@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Migration Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-card.primary .stat-value {
+            color: #667eea;
+        }
+
+        .stat-card.success .stat-value {
+            color: #00c851;
+        }
+
+        .stat-card.warning .stat-value {
+            color: #ffbb33;
+        }
+
+        .stat-card.danger .stat-value {
+            color: #ff4444;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .control-panel h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .btn-success {
+            background: #00c851;
+        }
+
+        .btn-warning {
+            background: #ffbb33;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .migration-log {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .migration-log h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .log-entry.success {
+            border-left-color: #00c851;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff4444;
+        }
+
+        .log-entry .timestamp {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .batch-selector {
+            margin: 20px 0;
+        }
+
+        .batch-selector label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .batch-selector input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .refresh-indicator {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>🚀 AWS S3 Migration Dashboard</h1>
+
+        <div id="alert" class="alert"></div>
+
+        <!-- Statistics Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Models</h3>
+                <div class="stat-value" id="total-models">0</div>
+            </div>
+
+            <div class="stat-card primary">
+                <h3>Migrated to AWS</h3>
+                <div class="stat-value" id="migrated-models">0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <h3>Remaining</h3>
+                <div class="stat-value" id="remaining-models">0</div>
+            </div>
+
+            <div class="stat-card success">
+                <h3>Monthly Savings</h3>
+                <div class="stat-value" id="cost-savings">$0</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h2>Migration Controls</h2>
+
+            <div class="batch-selector">
+                <label for="batch-size">Batch Size (models per batch):</label>
+                <input type="number" id="batch-size" value="10" min="1" max="50">
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="migrateTop20()">
+                    🎯 Migrate Top 20% Most Viewed
+                </button>
+                <button class="btn btn-primary" onclick="migrateRecent()">
+                    📅 Migrate Recent Models
+                </button>
+                <button class="btn btn-success" onclick="migrateBatch()">
+                    📦 Migrate Next Batch
+                </button>
+                <button class="btn btn-warning" onclick="showMigrateAllModal()">
+                    ⚡ Migrate All (Careful!)
+                </button>
+                <button class="btn btn-danger" onclick="showRollbackModal()">
+                    ⏪ Rollback Last Batch
+                </button>
+            </div>
+
+            <div class="controls" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="refreshStats()">
+                    🔄 Refresh Stats
+                </button>
+                <button class="btn btn-primary" onclick="exportReport()">
+                    📊 Export Report
+                </button>
+                <button class="btn btn-primary" onclick="testRandomModel()">
+                    🧪 Test Random Model
+                </button>
+            </div>
+        </div>
+
+        <!-- Migration Log -->
+        <div class="migration-log">
+            <h2>Migration Activity Log</h2>
+            <div id="log-container">
+                <div class="log-entry">
+                    <div class="timestamp">Waiting for first migration...</div>
+                    <div>Click a migration button to start</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message"></p>
+            <div class="controls" style="margin-top: 20px;">
+                <button class="btn btn-primary" id="modal-confirm">Confirm</button>
+                <button class="btn btn-danger" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh stats every 30 seconds
+        setInterval(refreshStats, 30000);
+
+        // Load initial stats
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshStats();
+        });
+
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/migrate-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'status' })
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch stats');
+
+                const data = await response.json();
+                updateDashboard(data);
+            } catch (error) {
+                console.error('Failed to refresh stats:', error);
+                showAlert('Failed to refresh statistics', 'error');
+            }
+        }
+
+        function updateDashboard(data) {
+            document.getElementById('total-models').textContent = data.total || 0;
+            document.getElementById('migrated-models').textContent = data.migrated || 0;
+            document.getElementById('remaining-models').textContent = data.remaining || 0;
+            document.getElementById('cost-savings').textContent = data.estimatedMonthlySavings || '$0';
+
+            const percent = parseFloat(data.percentComplete) || 0;
+            document.getElementById('progress-fill').style.width = percent + '%';
+
+            // Add refresh indicator
+            document.getElementById('total-models').classList.add('refresh-indicator');
+            setTimeout(() => {
+                document.getElementById('total-models').classList.remove('refresh-indicator');
+            }, 1000);
+        }
+
+        async function migrateBatch() {
+            const batchSize = document.getElementById('batch-size').value;
+            showLoading('Migrating batch...');
+
+            try {
+                // In real implementation, get next batch of IDs from server
+                const response = await fetch('/api/get-next-batch?size=' + batchSize);
+                const modelIds = await response.json();
+
+                const result = await fetch('/api/migrate-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'migrate',
+                        modelIds: modelIds,
+                        batchSize: 5
+                    })
+                });
+
+                const data = await result.json();
+                hideLoading();
+
+                if (result.ok) {
+                    addLogEntry(`✅ Migrated ${data.results.success.length} models successfully`, 'success');
+                    showAlert(`Successfully migrated ${data.results.success.length} models!`, 'success');
+                    refreshStats();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                hideLoading();
+                addLogEntry(`❌ Migration failed: ${error.message}`, 'error');
+                showAlert('Migration failed: ' + error.message, 'error');
+            }
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `
+                <div class="timestamp">${timestamp}</div>
+                <div>${message}</div>
+            `;
+
+            logContainer.insertBefore(entry, logContainer.firstChild);
+
+            // Keep only last 50 entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(message) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').innerHTML = message + '<span class="loading"></span>';
+            document.getElementById('modal-message').textContent = 'Please wait...';
+            document.getElementById('modal-confirm').style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('modal-confirm').style.display = 'block';
+        }
+
+        function showMigrateAllModal() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = '⚠️ Migrate All Models';
+            document.getElementById('modal-message').textContent =
+                'This will migrate ALL remaining models to AWS S3. This operation may take several hours. Are you sure?';
+            document.getElementById('modal-confirm').onclick = migrateAll;
+            modal.style.display = 'flex';
+        }
+
+        function showRollbackModal() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = '⏪ Rollback Last Batch';
+            document.getElementById('modal-message').textContent =
+                'This will rollback the last batch of migrated models to use Cloudinary again. Continue?';
+            document.getElementById('modal-confirm').onclick = rollbackLastBatch;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        async function migrateAll() {
+            closeModal();
+            addLogEntry('🚀 Starting full migration...', 'info');
+            // Implementation here
+        }
+
+        async function rollbackLastBatch() {
+            closeModal();
+            addLogEntry('⏪ Rolling back last batch...', 'warning');
+            // Implementation here
+        }
+
+        async function migrateTop20() {
+            addLogEntry('🎯 Migrating top 20% most viewed models...', 'info');
+            // Implementation here
+        }
+
+        async function migrateRecent() {
+            addLogEntry('📅 Migrating recent models...', 'info');
+            // Implementation here
+        }
+
+        async function testRandomModel() {
+            addLogEntry('🧪 Testing random migrated model...', 'info');
+            // Implementation here
+        }
+
+        function exportReport() {
+            addLogEntry('📊 Exporting migration report...', 'info');
+            // Implementation here
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "ar-furniture-platform",
+  "version": "1.0.2",
+  "description": "AR Furniture Viewing Platform for newfurniture.live",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build required for serverless'",
+    "deploy": "vercel --prod",
+    "fix-s3-permissions": "node scripts/fix-s3-permissions.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "bcryptjs": "^2.4.3",
+    "googleapis": "^164.1.0",
+    "multiparty": "^4.2.3",
+    "nanoid": "^5.0.4",
+    "node-fetch": "^2.7.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.32.6",
+    "three": "^0.157.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

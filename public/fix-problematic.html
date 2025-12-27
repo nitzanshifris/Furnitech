@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Problematic Models</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+        }
+        .container {
+            background: #34495e;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        h1 { color: #fff; }
+        .problem-box {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .hebrew-item {
+            border-left-color: #f39c12;
+        }
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        button:hover {
+            background: #229954;
+        }
+        button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+        .check-btn {
+            background: #3498db;
+        }
+        .check-btn:hover {
+            background: #2980b9;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2c3e50;
+            border-radius: 8px;
+            display: none;
+        }
+        #results.show {
+            display: block;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Problematic Models</h1>
+
+        <div class="problem-box">
+            <h3 class="error">❌ 4 Models with Missing Files (404)</h3>
+            <ul>
+                <li>eli_bed_scaled</li>
+                <li>zoe_sofa_scaled</li>
+                <li>ספת רביצה נוצות WHISPER</li>
+                <li>HSC020-</li>
+            </ul>
+            <p><strong>Fix:</strong> These files don't exist on Cloudinary. They need to be re-uploaded first.</p>
+        </div>
+
+        <div class="problem-box hebrew-item">
+            <h3 class="warning">⚠️ 5 Models with Hebrew Titles</h3>
+            <ul>
+                <li>הליכון בייתי מתקפל – Vo2 Zoom1</li>
+                <li>כיסא נדנדה ROCKER</li>
+                <li>ספה פינתית שמאל 300 ס"מ בד כחול דגם ג'ניס</li>
+                <li>ספת זוקפי גב מקצועית – כיסא רומי לאימון</li>
+                <li>סט מדפים עומד HILLS</li>
+            </ul>
+            <p><strong>Fix:</strong> We can migrate these with encoded metadata.</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="check-btn" onclick="checkProblematic()">
+                🔍 Check Which Can Be Fixed
+            </button>
+            <button onclick="migrateFixable()">
+                🚀 Migrate Hebrew-titled Models
+            </button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function checkProblematic() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = 'show';
+            resultsDiv.innerHTML = '⏳ Checking problematic models...';
+
+            try {
+                const response = await fetch('/api/migrate-problematic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ checkOnly: true })
+                });
+
+                const data = await response.json();
+
+                let html = '<h3>Check Results:</h3>';
+
+                if (data.results.missing_files.length > 0) {
+                    html += '<div class="error"><strong>Missing Files (Cannot migrate):</strong><ul>';
+                    data.results.missing_files.forEach(m => {
+                        html += `<li>${m.title} - ${m.url}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (data.results.hebrew_titles.length > 0) {
+                    html += '<div class="warning"><strong>Hebrew Titles (Can migrate with encoding):</strong><ul>';
+                    data.results.hebrew_titles.forEach(m => {
+                        html += `<li>${m.title} (${m.id})</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function migrateFixable() {
+            if (!confirm('Migrate models with Hebrew titles using safe encoding?')) return;
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = 'show';
+            resultsDiv.innerHTML = '⏳ Migrating Hebrew-titled models with safe encoding...';
+
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            try {
+                const response = await fetch('/api/migrate-problematic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ checkOnly: false })
+                });
+
+                const data = await response.json();
+
+                let html = '<h3>Migration Results:</h3>';
+
+                if (data.results.migrated.length > 0) {
+                    html += '<div class="success"><strong>✅ Successfully Migrated:</strong><ul>';
+                    data.results.migrated.forEach(m => {
+                        html += `<li>${m.title} → ${m.aws_url}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (data.results.still_failed.length > 0) {
+                    html += '<div class="error"><strong>❌ Still Failed:</strong><ul>';
+                    data.results.still_failed.forEach(m => {
+                        html += `<li>${m.title}: ${m.error}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (data.results.missing_files.length > 0) {
+                    html += '<div class="error"><strong>⚠️ Missing Files (Skipped):</strong><ul>';
+                    data.results.missing_files.forEach(m => {
+                        html += `<li>${m.title}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            }
+        }
+    </script>
+</body>
+</html>

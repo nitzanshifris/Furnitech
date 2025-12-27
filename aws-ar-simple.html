@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple AWS AR Test</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        model-viewer { width: 100%; height: 500px; border: 2px solid #000; }
+        .info { background: #f0f0f0; padding: 15px; margin: 10px 0; }
+        .btn { background: #007bff; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>AWS AR Test - Groove Grey</h1>
+
+    <div class="info">
+        <strong>Status:</strong> <span id="status">Loading...</span><br>
+        <strong>URL:</strong> /api/aws-model-proxy?file=Groove_grey-scaled.glb (via proxy - no CORS issues)
+    </div>
+
+    <model-viewer
+        src="/api/aws-model-proxy?file=Groove_grey-scaled.glb"
+        alt="Groove Chair"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        auto-rotate>
+
+        <button slot="ar-button" class="btn">📱 VIEW IN AR</button>
+    </model-viewer>
+
+    <script>
+        const mv = document.querySelector('model-viewer');
+        const status = document.getElementById('status');
+
+        mv.addEventListener('load', () => status.textContent = '✅ Model loaded from AWS!');
+        mv.addEventListener('error', (e) => status.textContent = '❌ Error: ' + e.detail);
+        mv.addEventListener('progress', (e) => status.textContent = `Loading... ${Math.round(e.detail.totalProgress * 100)}%`);
+    </script>
+</body>
+</html>
